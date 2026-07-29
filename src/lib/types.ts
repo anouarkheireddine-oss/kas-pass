@@ -1,10 +1,12 @@
 export interface KasPlan {
   id: string
   name: string
+  slug: string
   price_monthly: number
+  price_annual: number
   credits_per_month: number
-  stripe_price_id: string
-  stripe_price_id_annual?: string
+  stripe_price_id_monthly: string | null
+  stripe_price_id_annual: string | null
   active: boolean
   created_at: string
 }
@@ -13,9 +15,11 @@ export interface KasSubscription {
   id: string
   user_id: string
   plan_id: string
-  stripe_subscription_id: string
+  stripe_subscription_id: string | null
+  stripe_customer_id: string | null
   status: 'active' | 'past_due' | 'canceled'
   remaining_credits: number
+  billing_cycle: 'monthly' | 'annual'
   current_period_end: string
   created_at: string
   updated_at: string
@@ -26,10 +30,10 @@ export interface KasMerchant {
   id: string
   name: string
   slug: string
-  address: string | null
-  category: 'cafe' | 'bakery' | 'pub' | 'event'
-  neighborhood?: string
-  perk?: string
+  neighborhood: string
+  address: string
+  perk_description: string
+  image_url: string | null
   payout_rate_per_credit: number
   active: boolean
   created_at: string
@@ -39,8 +43,7 @@ export interface KasRedemption {
   id: string
   user_id: string
   merchant_id: string
-  subscription_id: string
-  credit_amount: number
+  credits_used: number
   redeemed_at: string
 }
 

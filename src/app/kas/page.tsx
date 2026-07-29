@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { KasPlan, KasMerchant } from '@/lib/types'
-import { Coffee, Star, MapPin, ChevronRight, Zap, CheckCircle2, QrCode, RefreshCw, Store } from 'lucide-react'
+import { Coffee, Star, ChevronRight, CheckCircle2, QrCode, RefreshCw, Store } from 'lucide-react'
 
 // ─── How It Works ────────────────────────────────────────────────────────────
 
@@ -169,10 +169,6 @@ function PricingCard({ plan, cycle, onSubscribe, loading }: PricingCardProps) {
 const NEIGHBORHOODS = ['All', 'City Centre', 'FarGo Village', 'Earlsdon', 'Leamington Spa'] as const
 type Neighborhood = typeof NEIGHBORHOODS[number]
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  cafe: '☕', bakery: '🥐', pub: '🍺', event: '🎟️',
-}
-
 interface MerchantDirectoryProps {
   merchants: KasMerchant[]
 }
@@ -219,24 +215,17 @@ function MerchantDirectory({ merchants }: MerchantDirectoryProps) {
                 className="bg-white rounded-xl p-5 border border-[#E8EBF0] flex flex-col gap-3 transition-shadow hover:shadow-md"
               >
                 <div className="flex items-start gap-4">
-                  <span className="text-3xl">{CATEGORY_EMOJI[m.category] ?? '📍'}</span>
+                  <span className="text-3xl">☕</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-serif font-bold text-[#1A1A1A] leading-snug">{m.name}</p>
-                    {m.neighborhood && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full mt-1">
-                        📍 {m.neighborhood}
-                      </span>
-                    )}
-                    {m.address && !m.neighborhood && (
-                      <p className="text-stone-400 text-xs flex items-center gap-1 mt-1">
-                        <MapPin size={10} /> {m.address}
-                      </p>
-                    )}
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full mt-1">
+                      📍 {m.neighborhood}
+                    </span>
                   </div>
                 </div>
-                {m.perk && (
+                {m.perk_description && (
                   <p className="text-xs text-[#00A3E0] font-semibold border-t border-[#E8EBF0] pt-3">
-                    Perk: {m.perk}
+                    Perk: {m.perk_description}
                   </p>
                 )}
               </div>

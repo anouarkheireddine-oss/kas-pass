@@ -22,19 +22,19 @@ export async function POST(req: NextRequest): Promise<NextResponse<RedeemResult 
 
   const db = supabaseAdmin()
 
-  // Verify merchant PIN
+  // Verify merchant and PIN
   const { data: merchant, error: mErr } = await db
     .from('kas_merchants')
-    .select('id, name, secret_pin_hash, active')
+    .select('id, name, secret_pin, active')
     .eq('id', merchant_id)
-    .single()
+    .single<{ id: string; name: string; secret_pin: string; active: boolean }>()
 
   if (mErr || !merchant || !merchant.active) {
     return NextResponse.json({ error: 'Merchant not found' }, { status: 404 })
   }
 
   const pinHash = createHash('sha256').update(pin).digest('hex')
-  if (pinHash !== merchant.secret_pin_hash) {
+  if (pinHash !== merchant.secret_pin) {
     return NextResponse.json({ error: 'Invalid PIN' }, { status: 403 })
   }
 
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<RedeemResult 
     .select('id, remaining_credits, status, current_period_end')
     .eq('user_id', user_id)
     .eq('status', 'active')
-    .single()
+    .single<{ id: string; remaining_credits: number; status: string; current_period_end: string }>()
 
   if (subErr || !sub) {
     return NextResponse.json({ error: 'No active subscription' }, { status: 402 })
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<RedeemResult 
     return NextResponse.json({ error: 'No credits remaining' }, { status: 402 })
   }
 
-  // Atomically decrement credit
+  // Atomic decrement with optimistic lock
   const { data: updated, error: updateErr } = await db
     .from('kas_subscriptions')
     .update({
@@ -62,9 +62,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<RedeemResult 
       updated_at: new Date().toISOString(),
     })
     .eq('id', sub.id)
-    .eq('remaining_credits', sub.remaining_credits) // optimistic lock
+    .eq('remaining_credits', sub.remaining_credits)
     .select('remaining_credits')
-    .single()
+    .single<{ remaining_credits: number }>()
 
   if (updateErr || !updated) {
     return NextResponse.json({ error: 'Concurrent update — please retry' }, { status: 409 })
@@ -74,15 +74,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<RedeemResult 
   await db.from('kas_redemptions').insert({
     user_id,
     merchant_id,
-    subscription_id: sub.id,
-    credit_amount: 1,
+    credits_used: 1,
   })
 
-  const timestamp = new Date().toISOString()
   return NextResponse.json({
     success: true,
     remaining: updated.remaining_credits,
-    timestamp,
+    timestamp: new Date().toISOString(),
     merchant_name: merchant.name,
   })
 }
