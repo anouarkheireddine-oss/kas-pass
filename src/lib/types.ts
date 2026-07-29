@@ -4,6 +4,7 @@ export interface KasPlan {
   price_monthly: number
   credits_per_month: number
   stripe_price_id: string
+  stripe_price_id_annual?: string
   active: boolean
   created_at: string
 }
@@ -27,6 +28,8 @@ export interface KasMerchant {
   slug: string
   address: string | null
   category: 'cafe' | 'bakery' | 'pub' | 'event'
+  neighborhood?: string
+  perk?: string
   payout_rate_per_credit: number
   active: boolean
   created_at: string
